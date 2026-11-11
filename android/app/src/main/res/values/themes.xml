@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.YTMP3" parent="Theme.Material3.DayNight">
+        <item name="colorPrimary">#D32F2F</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondaryContainer">#FFDAD6</item>
+        <item name="colorOnSecondaryContainer">#410002</item>
+    </style>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">YT MP3</string>
+    <string name="subtitle">Télécharge le son d\'une vidéo YouTube en MP3, sans publicité. Astuce : dans YouTube, touchez « Partager » puis « YT MP3 ».</string>
+    <string name="url_hint">URL YouTube</string>
+    <string name="paste">Coller</string>
+    <string name="download">Télécharger en MP3</string>
+    <string name="cancel">Annuler</string>
+    <string name="sponsorblock">Retirer les segments sponsorisés (SponsorBlock)</string>
+</resources>

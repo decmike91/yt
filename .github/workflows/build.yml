@@ -1,0 +1,79 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Compiler l'APK
+        run: chmod +x gradlew && ./gradlew assembleRelease --no-daemon --stacktrace
+      - name: Renommer
+        run: |
+          mkdir -p ../out
+          cp app/build/outputs/apk/release/app-universal-release.apk ../out/YT-MP3-android-universel.apk
+          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk ../out/YT-MP3-android-arm64.apk
+          ls -la ../out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: out/*.apk
+
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: pc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Construire YT-MP3.exe
+        shell: bash
+        run: |
+          pip install -r requirements.txt pyinstaller
+          DENO=$(python -c "import deno; print(deno.find_deno_bin())")
+          pyinstaller --onefile --noconsole --name YT-MP3 \
+            --collect-all imageio_ffmpeg --collect-all yt_dlp_ejs \
+            --add-binary "$DENO;." yt_mp3.py
+          mkdir -p ../out && cp dist/YT-MP3.exe ../out/YT-MP3-windows.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: exe
+          path: out/*.exe
+
+  release:
+    needs: [android, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Publier la release « latest »
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --cleanup-tag -y || true
+          gh release create latest out/* \
+            --title "YT MP3 – build ${{ github.run_number }}" \
+            --notes "Version compilée automatiquement depuis ${{ github.sha }}.
+          - **Android** : installez \`YT-MP3-android-arm64.apk\` (la plupart des téléphones) ou \`YT-MP3-android-universel.apk\`.
+          - **Windows** : lancez \`YT-MP3-windows.exe\` (aucune installation requise)."
